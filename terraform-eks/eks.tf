@@ -97,6 +97,16 @@ resource "aws_security_group_rule" "eks_worker_ingress_kubelet" {
   source_security_group_id = aws_security_group.eks_worker_sg.id
 }
 
+# Allow LoadBalancer (Port 80) Traffic
+resource "aws_security_group_rule" "eks_worker_ingress_http" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol         = "tcp"
+  security_group_id = aws_security_group.eks_worker_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 # Allow Nodes to Access the Internet
 resource "aws_security_group_rule" "eks_worker_egress" {
   type              = "egress"
@@ -121,4 +131,33 @@ resource "aws_eks_node_group" "main" {
   }
 
   instance_types = ["t2.micro"]
+
+  depends_on = [aws_iam_role_policy_attachment.eks_worker_policies]
+}
+
+# ✅ New: Force Kubernetes to Delete LoadBalancer Before Destroying EKS
+resource "null_resource" "cleanup_kubernetes_resources" {
+  depends_on = [aws_eks_cluster.main]
+
+  provisioner "local-exec" {
+    command = <<EOT
+      kubectl delete service hello-world-service || true
+      kubectl delete deployment hello-world-app || true
+    EOT
+  }
+}
+
+# ✅ New: Ensure IAM Roles Are Detached Before Deletion
+resource "null_resource" "detach_iam_policies" {
+  provisioner "local-exec" {
+    command = <<EOT
+      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy || true
+      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy || true
+      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly || true
+      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore || true
+      aws iam detach-role-policy --role-name eksClusterRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy || true
+    EOT
+  }
+
+  depends_on = [aws_eks_node_group.main]
 }
