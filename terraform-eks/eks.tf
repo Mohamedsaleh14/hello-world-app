@@ -134,36 +134,3 @@ resource "aws_eks_node_group" "main" {
 
   depends_on = [aws_iam_role_policy_attachment.eks_worker_policies]
 }
-
-# ✅ New: Force Kubernetes to Delete LoadBalancer ONLY DURING DESTROY
-resource "null_resource" "cleanup_kubernetes_resources" {
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<EOT
-      kubectl delete service hello-world-service || true
-      kubectl delete deployment hello-world-app || true
-    EOT
-  }
-
-  depends_on = [aws_eks_cluster.main]
-}
-
-# ✅ New: Ensure IAM Policies Are Detached ONLY DURING DESTROY
-resource "null_resource" "detach_iam_policies" {
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<EOT
-      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy || true
-      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy || true
-      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly || true
-      aws iam detach-role-policy --role-name eksWorkerRole --policy-arn arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore || true
-      aws iam detach-role-policy --role-name eksClusterRole --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy || true
-    EOT
-  }
-
-  depends_on = [aws_eks_node_group.main]
-}
