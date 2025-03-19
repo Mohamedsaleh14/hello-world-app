@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+      - name: hello-world-container
+        image: 850995538849.dkr.ecr.eu-central-1.amazonaws.com/hello-world-app:latest  # Replace with your actual AWS ECR URL
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always  # Ensure EKS pulls the latest image from ECR
