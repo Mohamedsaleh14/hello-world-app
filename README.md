@@ -520,6 +520,9 @@ type: LoadBalancer
 ---
 ## Notes:
 
+### **✅ Each Terraform file is documented in the `terraform-eks` folder**
+---
+---
 If **EKS waits for the ECR image to be pushed** but **Kubernetes resources (Deployment & Service) are applied after EKS is ready**, this can cause a **deadlock** where:
 1. **EKS waits for ECR** (because `depends_on` enforces that ECR must be ready).
 2. **ECR waits for EKS** (because Kubernetes needs an active cluster to deploy).
