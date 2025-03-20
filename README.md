@@ -30,9 +30,13 @@ Before diving into code, let's outline **what we’re building**:
 Before we start coding, you need the following tools installed on your system:
 
 ✅ **Node.js & npm** (For the web app)
+
 ✅ **Docker** (For containerization)
+
 ✅ **Kubernetes (kubectl & minikube or AWS EKS CLI)**
+
 ✅ **Terraform** (For AWS infrastructure)
+
 ✅ **AWS CLI** (For cloud authentication & resource management)
 
 Great! Let’s start with **Step 1: Creating the Node.js Web App.**
@@ -424,7 +428,7 @@ kubectl apply -f hello-world.yaml
 ```
 ---
 
-## Provisioning AWS Infrastructure with Terraform**
+## Provisioning AWS Infrastructure with Terraform
 Now that we have our app and containerization set up, we need to provision our AWS infrastructure using **Terraform**.
 
 ### **1️⃣ Initialize Terraform**
@@ -643,7 +647,9 @@ Hello, World!
 
 ### **🚀 Final Confirmation**
 ✅ **No manual updates needed beyond updating `deployment.yaml`.**
+
 ✅ **Terraform now fully manages AWS ECR, EKS, and Kubernetes Deployment.**
+
 ✅ **You are now production-ready! 🎉**
 
 
